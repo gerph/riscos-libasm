@@ -1,0 +1,69 @@
+;
+; irqs.s - enable/disable interrupts
+;
+; Updated for 32bit use
+;
+
+        GET     Hdr:ListOpts
+        GET     Hdr:Macros
+        GET     Hdr:System
+
+        EXPORT  ensure_irqs_off
+        EXPORT  restore_irqs
+        EXPORT  ensure_irqs_on
+
+        AREA    |C$$Code|, CODE, READONLY
+
+I32_bit *       1 :SHL: 7
+
+; ensure_irqs_off:  Disable IRQs, returning a value
+; suitable for passing to restore_irqs.
+ensure_irqs_off
+        [ {CONFIG}=32
+        MRS     r0, CPSR
+        ORR     r1, r0, #I32_bit        ; set IRQs
+        TEQ     r0, r1                  ; any change?
+        MSRNE   CPSR_ctl, r1            ; disable IRQs if enabled before
+        AND     r0, r0, #I32_bit        ; return previous state of bit
+        MOV     pc,lr
+        |
+        AND     r0, lr, # I_bit
+        ORRS    pc, lr, # I_bit
+        ]
+
+; ensure_irqs_on:  Enable IRQs, returning a value
+; suitable for passing to restore_irqs
+ensure_irqs_on
+        [ {CONFIG}=32
+        MRS     r0, CPSR
+        BIC     r1, r0, #I32_bit        ; enable IRQs
+        TEQ     r0, r1                  ; any change?
+        MSRNE   CPSR_ctl, r1            ; enable IRQs if disabled before
+        AND     r0, r0, #I32_bit        ; return previous state of bit
+        MOV     pc, lr
+        |
+        AND     r0, lr, # I_bit
+        BICS    pc, lr, # I_bit
+        ]
+
+; restore_irqs:  Re-enable IRQs if they were enabled prior to
+; the earlier call to ensure_irqs_off/ensure_irqs_on
+restore_irqs
+        [ {CONFIG}=32
+        MRS     r1, CPSR                ; obtain current PSR
+        BIC     r2, r1, #I32_bit        ; clear IRQ bit
+        ORR     r2, r2, r0              ; restore state from parameter
+        TEQ     r1, r2                  ; changed?
+        MSRNE   CPSR_ctl, r2            ; update PSR if it has changed
+        MOV     pc,lr
+        |
+        BIC     lr, lr, # I_bit
+        ORRS    pc, lr, r0
+        ]
+
+        END
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+; EOF irqs.s
+;

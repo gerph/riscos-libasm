@@ -1,0 +1,36 @@
+;
+; callbacks.s - trigger callbacks
+;
+
+        GET     Hdr:ListOpts
+        GET     Hdr:Macros
+        GET     Hdr:System
+        GET     Hdr:ProcAPCS
+
+        AREA    |C$$Code|, CODE, READONLY
+
+        EXPORT  trigger_callbacks
+
+; void trigger_callbacks(void)
+trigger_callbacks
+        APCSEntry ,,nostackcheck
+; JRF: The number of times we've discussed having a SWI for this, one would
+;      think that it might be useful to actually do that at some point.
+
+      [ {CONFIG}=26
+        TSTP   pc, #0                   ; Drop to user mode
+        MOV    r0, r0
+      |
+        MRS    r0, CPSR                 ; read CPSR
+        BIC    r0, r0, #2_01111         ; convert to user mode
+        MSR    CPSR_ctl, r0             ; apply
+      ]
+
+        MOV    R0,#0
+        MOV    R1,#1
+        SWI    XOS_Byte                 ; Does callbacks on exit
+
+        SWI    XOS_EnterOS              ; Set SVC mode.
+        APCSExit
+
+        END

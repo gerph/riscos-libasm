@@ -1,0 +1,31 @@
+/*******************************************************************
+ * File:     callbacks.h
+ * Purpose:  Triggering callbacks (original code taken from networking
+ *           components)
+ * Author:   Justin Fletcher
+ * Date:     16 Aug 2003
+ ******************************************************************/
+
+#ifndef __callbacks_h
+#define __callbacks_h
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* We try to trigger the callbacks by dropping to user mode and calling a
+ * SWI. The intention is that this will allow Internet functions to be
+ * processed, although it's very likely that it will allow other things to
+ * happen as well. One side effect is that it will allow a callback handler
+ * to be called - such as might be the case inside a TaskWindow. Much
+ * scariness ensues, but because most callback-triggering code is designed
+ * to cope with this potential reentrancy we are safe.
+ * New code MUST ensure that it can cope with this case.
+ */
+extern void trigger_callbacks(void);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

@@ -1,0 +1,29 @@
+/*******************************************************************
+ * File:     irqs.h
+ * Purpose:  IRQ control functions (taken from network components)
+ * Author:   Justin Fletcher
+ * Date:     16 Aug 2003
+ ******************************************************************/
+
+#ifndef __irqs_h
+#define __irqs_h
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* ensure_irqs_off - turns IRQs off, returns a value to restore old state
+ * ensure_irqs_on  - turns IRQs on, returns a value to restore old state
+ * restore_irqs    - restores irqs to old state
+ *
+ * The state is an opaque value. Don't manipulate it.
+ */
+extern unsigned long ensure_irqs_off(void);
+extern unsigned long ensure_irqs_on(void);
+extern void restore_irqs(unsigned long);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

@@ -1,0 +1,29 @@
+/*******************************************************************
+ * File:     muldiv
+ * Purpose:  Multiplication and division routine (original code
+ *           taken from IFR, which was taken from the DrawFile
+ *           module, I believe)
+ * Author:   Justin Fletcher
+ * Date:     16 Aug 2003
+ ******************************************************************/
+
+#ifndef __muldiv_h
+#define __muldiv_h
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* muldiv(a, b, c)
+ * result = a*b/c
+ * The intermediate product is 64 bits long
+ * Division by zero won't be raised (might be if built in to application
+ * code in the future).
+ */
+extern int muldiv(int a, int b, int c);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif
