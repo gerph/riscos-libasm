@@ -17,7 +17,7 @@ extern "C" {
 /* _callx is nearly identical to _swix.
  * Instead of calling a SWI, however, it calls an arbitrary function.
  * The arguments are similar to those to _swix, except :
- *  - You cannot use _RETURN because there is no _callx variant of this
+ *  - You cannot use _RETURN because there is no _call variant of this
  *    function
  *  - Registers 0-11 may be passed in.
  *  - _BLOCK(x) may NOT be used
