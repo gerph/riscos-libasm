@@ -14,7 +14,7 @@
 
         AREA    |C$$Code|, CODE, READONLY
 
-I32_bit *       1 :SHL: 7
+;I32_bit *       1 :SHL: 7
 
 ; ensure_irqs_off:  Disable IRQs, returning a value
 ; suitable for passing to restore_irqs.

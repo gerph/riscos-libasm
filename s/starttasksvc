@@ -14,13 +14,30 @@
 
         EXPORT  svc_wimp_start_task
 
-I32_bit   *       1 :SHL: 7
+;I32_bit   *       1 :SHL: 7
 USRx_bits *       2_01111
 
 ; unsigned long svc_wimp_start_task(const char *cmd, int size)
 svc_wimp_start_task
         APCSEntry "R0,R1,R4-R10",,nostackcheck
 
+      [ {CONFIG}=26
+        MOV    r14, pc           ; r14 = processor mode
+        AND    r14, r14, #2_11
+      |
+        MRS    r14, CPSR         ; read CPSR
+        AND    r14, r14, #2_01111
+      ]
+        TEQ    r14, #2_00
+        BNE    %FT50
+
+; We're in USR mode, so dead easy to manipulate
+        BL     do_starttask
+        STR    r0, [sp]
+        APCSExit
+
+; We're in SVC mode, so need to do the messing about
+50
 ; read size of the SVC stack
         MOV    r0, #6
         MOV    r1, #0
@@ -56,25 +73,7 @@ svc_wimp_start_task
       ]
 
 ; set up the 'next' slot to an appropriate size
-        MOV    R5, R0
-        MOV    R3, R1
-        MOV    R0, #-1
-        MOV    R1, #-1
-        SWI    XWimp_SlotSize
-        MOV    R6, R1                   ; R6 = old 'next' slot
-        MOV    R1, R3
-        SWI    XWimp_SlotSize
-
-; start the task
-        MOV    R0, R5
-        SWI    XWimp_StartTask          ; start the task
-        MOVVS  R0, #0                   ; if there was an error, 'no task'
-        MOV    R5, R0
-
-; restore the 'next' slot to its old size
-        MOV    R1, R6                   ; R1 = old 'next' slot
-        MOV    R0, #-1
-        SWI    XWimp_SlotSize
+        BL     do_starttask
 
 ; back to SVC mode
         SWI    XOS_EnterOS              ; Set SVC mode.
@@ -97,6 +96,32 @@ svc_wimp_start_task
         STR    r0, [sp]
         APCSExit
 
+
+; => r0-> command
+;    r1 = slot size
+; <= r5 = task handle, or 0 if none
+;    r0-r3,r6 corrupt
+do_starttask ROUT
+        MOV    R5, R0
+        MOV    R3, R1
+        MOV    R0, #-1
+        MOV    R1, #-1
+        SWI    XWimp_SlotSize
+        MOV    R6, R1                   ; R6 = old 'next' slot
+        MOV    R1, R3
+        SWI    XWimp_SlotSize
+
+; start the task
+        MOV    R0, R5
+        SWI    XWimp_StartTask          ; start the task
+        MOVVS  R0, #0                   ; if there was an error, 'no task'
+        MOV    R5, R0
+
+; restore the 'next' slot to its old size
+        MOV    R1, R6                   ; R1 = old 'next' slot
+        MOV    R0, #-1
+        SWI    XWimp_SlotSize
+        MOV    pc, lr
 
 
 
