@@ -1,0 +1,65 @@
+/*******************************************************************
+ * File:     fpsvc
+ * Purpose:  Support for Floating Point register use from SVC mode -
+ *           Because APCS declares that FP registers F0-F3 are
+ *           corruptable and the CMunge veneers do not preserve these
+ *           registers, we must preserve them ourselves.
+ * Author:   Justin Fletcher
+ * Date:     11 May 2004
+ ******************************************************************/
+
+#ifndef __fpsvc_h
+#define __fpsvc_h
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* This structure holds the information about the Floating Point register
+ * state before we started doing things. Try not to manipulate things in
+ * the registers as you might hurt it.
+ *
+ * The name matches that of the jmp_buf for consistency.
+ *
+ */
+
+typedef struct fpsvc_buf
+{
+  unsigned int fpsr;         /* We might modify the status */
+  unsigned int scratch[4*3]; /* each FP register takes 3 words */
+} fpsvc_buf;
+
+/* fpsvc_preserve - call this to store the state of the floating point
+ *                  registers in the supplied buffer. After this call,
+ *                  exceptions will be flagged as being ignored as
+ *                  the system could not recover from an exception in the
+ *                  FP system under SVCs.
+ * fpsvc_restore  - call this to restore the state of the floating point
+ *                  registers from the buffer after we're done with them
+ *
+ * Usually you'd do something like this :
+ * {
+ *   fpsvc_buf fpbuf;
+ *   fpsvc_preserve(&fpbuf);
+ *   ... do FP operations ...
+ *   fpsvc_restore(&fpbuf);
+ * }
+ *
+ * I'd recommend making the '... do FP operations ...' bit a function call
+ * as it will clarify the code to keep the processing and the FP-SVC mode
+ * bits separate.
+ *
+ * You may use this code in USR mode with no detrimental effects, although
+ * you don't necessarily need to. Remember if using FP in any wimp
+ * application that you should set the flag to preserve FP registers on the
+ * call to Wimp_Poll. That doesn't relate to this library but it's here
+ * for completeness.
+ */
+extern void fpsvc_preserve(fpsvc_buf * regs);
+extern void fpsvc_restore(fpsvc_buf * regs);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

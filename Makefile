@@ -9,14 +9,16 @@ OBJS       = o.callbacks \
              o.irqs \
              o.muldiv \
              o.callx \
-             o.processor
+             o.processor \
+             o.fpsvc
 
 EXPORTS    = \
              ${EXP_LIB}.${COMPONENT}.h.callbacks \
              ${EXP_LIB}.${COMPONENT}.h.irqs \
              ${EXP_LIB}.${COMPONENT}.h.muldiv \
              ${EXP_LIB}.${COMPONENT}.h.callx \
-             ${EXP_LIB}.${COMPONENT}.h.processor
+             ${EXP_LIB}.${COMPONENT}.h.processor \
+             ${EXP_LIB}.${COMPONENT}.h.fpsvc
 CDEFINES   = 
 INCLUDES   = 
 
@@ -32,6 +34,8 @@ ${EXP_LIB}.${COMPONENT}.h.muldiv: h.muldiv
 ${EXP_LIB}.${COMPONENT}.h.callx: h.callx
         ${CP} $? $@ ${CPFLAGS}
 ${EXP_LIB}.${COMPONENT}.h.processor: h.processor
+        ${CP} $? $@ ${CPFLAGS}
+${EXP_LIB}.${COMPONENT}.h.fpsvc: h.fpsvc
         ${CP} $? $@ ${CPFLAGS}
 
 #---------------------------------------------------------------------------

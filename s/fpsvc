@@ -1,0 +1,50 @@
+;
+; fpsvc.s - support for floating point in SVC mode
+;
+
+        GET     Hdr:ListOpts
+        GET     Hdr:Macros
+        GET     Hdr:System
+        GET     Hdr:ProcAPCS
+
+        AREA    |C$$code|, CODE, READONLY
+
+        EXPORT  fpsvc_preserve
+        EXPORT  fpsvc_restore
+
+
+; Our structure:
+          ^     0, r0
+s_fpsr    #     4         ; the FPSR
+s_scratch #     4*3 * 4   ; the scratch registers
+
+
+; extern void fpsvc_preserve(fpsvc_buf * regs);
+fpsvc_preserve
+        RFS     r1
+        STR     r1, s_fpsr
+
+        MOV     r1, #0 ; no exceptions here
+        WFS     r1
+        SFM     f0, 4, s_scratch
+     [ {CONFIG}=32
+        MOV     pc, lr
+     |
+        MOVS    pc, lr
+     ]
+
+
+; extern void fpsvc_restore(fpsvc_buf * regs);
+fpsvc_restore
+        LFM     f0, 4, s_scratch
+
+        LDR     r1, s_fpsr
+        WFS     r1
+     [ {CONFIG}=32
+        MOV     pc, lr
+     |
+        MOVS    pc, lr
+     ]
+
+
+        END
