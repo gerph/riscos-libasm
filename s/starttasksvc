@@ -1,0 +1,156 @@
+;
+; starttasksvc.s - issue a Wimp_StartTask in USR mode which will
+;                  trigger callbacks and then return the handle
+;
+
+        GET     Hdr:ListOpts
+        GET     Hdr:Macros
+        GET     Hdr:System
+        GET     Hdr:ProcAPCS
+        GET     Hdr:Wimp
+        GET     Hdr:ModHand
+
+        AREA    |C$$Code|, CODE, READONLY
+
+        EXPORT  svc_wimp_start_task
+
+I32_bit   *       1 :SHL: 7
+USRx_bits *       2_01111
+
+; unsigned long svc_wimp_start_task(const char *cmd, int size)
+svc_wimp_start_task
+        APCSEntry "R0,R1,R4-R10",,nostackcheck
+
+; read size of the SVC stack
+        MOV    r0, #6
+        MOV    r1, #0
+        MOV    r2, #16           ; SVCSTK top
+        SWI    XOS_ReadSysInfo
+        LDRVS  r2, =&1C02000     ; earlier systems don't have introspection
+        MOV    r8, r2            ; R8 = top of the stack
+        MOV    r14, r8, LSR #20
+        MOV    r14, r14, LSL #20  ; Megabyte boundary (base)
+; claim space for our copy
+        SUB    r3, r8, r14       ; size of the stack
+        MOV    r0, #ModHandReason_Claim
+        SWI    XOS_Module
+        MOVVS  r0, #0
+        BVS    %FT99             ; can't claim SVC stack copy, so abort
+        MOV    r9, r2            ; R9 = our stack copy
+; copy the stack
+        MOV    r0, r9
+        MOV    r1, r8
+        BL     SaveSVCStack      ; R10 = old SVC stack address
+; flatten SVC stack
+        LDMIA  sp, {r0, r1}      ; restore r0,r1 from entry
+        MOV    sp_svc, r8        ; stack now flattened
+
+; Now drop to USR mode
+      [ {CONFIG}=26
+        TSTP   pc, #0                   ; Drop to user mode
+        MOV    r0, r0
+      |
+        MRS    r2, CPSR                 ; read CPSR
+        BIC    r2, r2, #(I32_bit :OR: USRx_bits) ; convert to user mode, IRQs on
+        MSR    CPSR_ctl, r2             ; apply
+      ]
+
+; set up the 'next' slot to an appropriate size
+        MOV    R5, R0
+        MOV    R3, R1
+        MOV    R0, #-1
+        MOV    R1, #-1
+        SWI    XWimp_SlotSize
+        MOV    R6, R1                   ; R6 = old 'next' slot
+        MOV    R1, R3
+        SWI    XWimp_SlotSize
+
+; start the task
+        MOV    R0, R5
+        SWI    XWimp_StartTask          ; start the task
+        MOVVS  R0, #0                   ; if there was an error, 'no task'
+        MOV    R5, R0
+
+; restore the 'next' slot to its old size
+        MOV    R1, R6                   ; R1 = old 'next' slot
+        MOV    R0, #-1
+        SWI    XWimp_SlotSize
+
+; back to SVC mode
+        SWI    XOS_EnterOS              ; Set SVC mode.
+        MOV    r12, R5                  ; hang on to the task handle
+
+; need to restore stack
+        MOV    r0, r9
+        MOV    r1, r8
+        BL     RestoreSVCStack
+; free space we claimed
+        MOV    r0, #ModHandReason_Free
+        MOV    r2, r9
+        SWI    XOS_Module
+
+; task handle back into r0
+        MOV    r0, r12
+
+; exit
+99
+        STR    r0, [sp]
+        APCSExit
+
+
+
+
+SaveSVCStack ROUT
+;
+; Copy the SVC stack into my private copy
+;
+; => R0-> our stack copy location
+;    R1-> stack top
+; <= R10 = old stack position (must be remembered)
+;    Corrupts r0 - r7
+;
+        MOV     r10, r13          ; Remember stack position
+10
+        LDMDB   r1!, {r2-r7}
+        STMIA   r0!, {r2-r7}      ; Copy stack to my area
+        CMP     r1, r13
+        BHI     %b10
+;
+; Now save the fours words at the very base where C modules
+; have stack chunk information stored.
+;
+        MOV     r1, r1, LSR #20
+        MOV     r1, r1, LSL #20   ; Megabyte boundary (base)
+        LDMIA   r1, {r2-r5}       ; The four registers
+        STMIA   r0, {r2-r5}       ; Copy them after the base
+        MOV     pc, r14
+
+
+RestoreSVCStack ROUT
+;
+; Restore SVC stack from my private copy
+;
+; => R0-> our stack copy location
+;    R1-> stack top
+;    R10 = old stack position
+;
+; <= r13 restored from r10
+;    Corrupts r0 - r7
+;
+        MOV     r13, r10          ; old svc_r13
+10
+        LDMIA   r0!, {r2-r7}
+        STMDB   r1!, {r2-r7}      ; Copy stack from my area
+        CMP     r1, r13
+        BHI     %b10
+;
+; Now restore the fours words at the very base where C modules
+; have stack chunk information stored.
+;
+        LDMIA   r0, {r2-r5}       ; The four registers
+        MOV     r1, r1, LSR #20
+        MOV     r1, r1, LSL #20   ; Megabyte boundary (base)
+        STMIA   r1, {r2-r5}       ; Copy them
+        MOV     pc, r14
+
+        END

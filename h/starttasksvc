@@ -1,0 +1,37 @@
+/*******************************************************************
+ * File:     starttasksvc.h
+ * Purpose:  Wimp_StartTask from within SVC mode, safely returning the
+ *           task handle without corrupting whatever was in USR mode
+ * Author:   Justin Fletcher
+ * Date:     24 May 2004
+ ******************************************************************/
+
+#ifndef __starttasksvc_h
+#define __starttasksvc_h
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/*
+ * The Wimp_StartTask SWI cannot be called directly from SVC mode.
+ * Because the SWI triggers a task switch, using the environment handler
+ * callback method to cause the task switch, we must first drop to USR
+ * mode, do the SWI and then return back to SVC mode.
+ * Because we're doing things this way, we also take the opportunity
+ * to change the next slot, transiently.
+ *
+ * Note: You MUST be in SVC mode as a result of a wimp filter, or within
+ *       a definate task. Any other environment may cause undefined
+ *       behaviour.
+ *
+ * Returns the taskhandle of the task started, or 0 if the task did not
+ * start a Wimp Task.
+ */
+unsigned long svc_wimp_start_task(const char *cmd, int size);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

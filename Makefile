@@ -10,7 +10,8 @@ OBJS       = o.callbacks \
              o.muldiv \
              o.callx \
              o.processor \
-             o.fpsvc
+             o.fpsvc \
+             o.starttasksvc
 
 EXPORTS    = \
              ${EXP_LIB}.${COMPONENT}.h.callbacks \
@@ -18,7 +19,8 @@ EXPORTS    = \
              ${EXP_LIB}.${COMPONENT}.h.muldiv \
              ${EXP_LIB}.${COMPONENT}.h.callx \
              ${EXP_LIB}.${COMPONENT}.h.processor \
-             ${EXP_LIB}.${COMPONENT}.h.fpsvc
+             ${EXP_LIB}.${COMPONENT}.h.fpsvc \
+             ${EXP_LIB}.${COMPONENT}.h.starttasksvc
 CDEFINES   = 
 INCLUDES   = 
 
@@ -36,6 +38,8 @@ ${EXP_LIB}.${COMPONENT}.h.callx: h.callx
 ${EXP_LIB}.${COMPONENT}.h.processor: h.processor
         ${CP} $? $@ ${CPFLAGS}
 ${EXP_LIB}.${COMPONENT}.h.fpsvc: h.fpsvc
+        ${CP} $? $@ ${CPFLAGS}
+${EXP_LIB}.${COMPONENT}.h.starttasksvc: h.starttasksvc
         ${CP} $? $@ ${CPFLAGS}
 
 #---------------------------------------------------------------------------
