@@ -1,0 +1,44 @@
+/*******************************************************************
+ * File:     callx.h
+ * Purpose:  Call an arbitrary function with a set of register args
+ * Author:   Justin Fletcher
+ * Date:     12 Sep 2003
+ ******************************************************************/
+
+#ifndef __callx_h
+#define __callx_h
+
+#include "swis.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* _callx is nearly identical to _swix.
+ * Instead of calling a SWI, however, it calls an arbitrary function.
+ * The arguments are similar to those to _swix, except :
+ *  - You cannot use _RETURN because there is no _callx variant of this
+ *    function
+ *  - Registers 0-11 may be passed in.
+ *  - _BLOCK(x) may NOT be used
+ *  - Only registers 0-9 may be passed out
+ *
+ * The arrangement of mask is as follows:
+ *
+ * Bits 0 -  11: Set if R(N) is passed to the SWI.
+ * Bits 22 - 31: Set if R(31-N) is output from the SWI (ie bit 31
+ *               corresponds to R0, bit 22 corresponds to R9).
+ * Bit 21:       Set if the PC (including the flags) is to be output.
+ * Bits 16 - 19: Unused (was _RETURN register)
+ * Bits 12 - 15: Unused (was _BLOCK register)
+ */
+#pragma -v4
+extern _kernel_oserror *_callx (void *func, void *pw, unsigned int, ...);
+#pragma -v0
+
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

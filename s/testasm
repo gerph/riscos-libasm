@@ -1,0 +1,51 @@
+;
+; testasm.s - testing that the assembler veneers work
+;
+
+        GET     Hdr:ListOpts
+        GET     Hdr:Macros
+        GET     Hdr:System
+        GET     Hdr:Proc
+        GET     Hdr:ProcAPCS
+
+        AREA    |C$Code|, CODE, READONLY
+
+        EXPORT  asm_setregs
+        EXPORT  asm_func
+
+asm_setregs SIGNATURE
+        APCSEntry
+        STR     r0, value_r12
+        APCSExit
+
+value_r12
+        DCD     0
+
+asm_func
+        Entry
+        SWI     &100+'A'
+        LDR     r14, value_r12
+        TEQ     r14, r12
+        BNE     %FT80
+
+        STMIA   r12, {r0-r11}
+        SWI     &100+'a'
+
+        LDR     r8, =&889977
+        CLRV
+        EXIT
+
+80
+        MOV     r0, #&7000
+        STR     r12, [r0,#0]
+        STR     r14, [r0,#4]
+        SWI     &100+'a'
+        ADR     r0, myerror
+        SETV
+        EXIT
+
+myerror
+        DCD     0
+        = "Invalid r12 value",0
+
+        END
