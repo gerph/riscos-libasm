@@ -71,7 +71,7 @@ callx_nohighargs
         LDREQ   fp, [sp, #0+8]            ; re-read fp in case it breaks (only if not set)
                                           ; EQ is correctly set whether we come from the branch
                                           ; or as a fall through
-        MOV     lr, pc
+        SUBS    lr, pc, #0                ; set up return register AND force V clear
         LDMFD   sp!,{r12, pc}
         LDR     ip, [sp, #4]              ; only read back ip (stashed args ptr)
         ; fall through to callxReturn
