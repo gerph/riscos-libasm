@@ -1,0 +1,28 @@
+;
+; processor.s - processor specific operations
+;
+
+        GET     Hdr:ListOpts
+        GET     Hdr:Macros
+        GET     Hdr:System
+        GET     Hdr:ProcAPCS
+
+        EXPORT  processor_id
+
+        AREA    |C$$Code|, CODE, READONLY
+
+; return procesor ID word
+processor_id
+        MRC     p15,0,a1,c0,c0
+     [ {CONFIG}=32
+        MOV     pc,lr
+     |
+        MOVS    pc,lr
+     ]
+
+        END
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+; EOF processor.s
+;

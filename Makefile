@@ -8,13 +8,15 @@ COMPONENT  = Asm
 OBJS       = o.callbacks \
              o.irqs \
              o.muldiv \
-             o.callx
+             o.callx \
+             o.processor
 
 EXPORTS    = \
              ${EXP_LIB}.${COMPONENT}.h.callbacks \
              ${EXP_LIB}.${COMPONENT}.h.irqs \
              ${EXP_LIB}.${COMPONENT}.h.muldiv \
-             ${EXP_LIB}.${COMPONENT}.h.callx
+             ${EXP_LIB}.${COMPONENT}.h.callx \
+             ${EXP_LIB}.${COMPONENT}.h.processor
 CDEFINES   = 
 INCLUDES   = 
 
@@ -28,6 +30,8 @@ ${EXP_LIB}.${COMPONENT}.h.irqs: h.irqs
 ${EXP_LIB}.${COMPONENT}.h.muldiv: h.muldiv
         ${CP} $? $@ ${CPFLAGS}
 ${EXP_LIB}.${COMPONENT}.h.callx: h.callx
+        ${CP} $? $@ ${CPFLAGS}
+${EXP_LIB}.${COMPONENT}.h.processor: h.processor
         ${CP} $? $@ ${CPFLAGS}
 
 #---------------------------------------------------------------------------

@@ -1,0 +1,107 @@
+/*******************************************************************
+ * File:     processor.h
+ * Purpose:  Read/Write processor specific details
+ * Author:   Justin Fletcher
+ * Date:     16 Aug 2003
+ ******************************************************************/
+
+#ifndef __processor_h
+#define __processor_h
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* In order to identify the system we're running on, it is necessary to
+ * obtain the processor ID. This is not possible to do without a little
+ * assembler routine. The processor ID is mapped as follows :
+ * Post-ARM 7:
+ *    bits 0-3   : revision number
+ *    bits 4-15  : primary part number (top 4 bits can't be 0 or 7)
+ *    bits 16-19 : architecture code :
+ *                     1 = Architecture 4
+ *                     2 = Architecture 4T
+ *                     3 = Architecture 5
+ *                     4 = Architecture 5T
+ *                     5 = Architecture 5TE
+ *                     6 = Architecture 5TEJ
+ *                     7 = Architecture 6
+ *    bits 20-23 : varaint number
+ *    bits 24-31 : implementor code :
+ *                    'A' = ARM
+ *                    'D' = DEC
+ *                    'i' = Intel
+ *
+ * ARM 7:
+ *    bits 0-3   : revision number
+ *    bits 4-11  : primary part number
+ *    bits 12-15 : 7
+ *    bits 16-22 : varaint number
+ *    bits 23    : architecture code :
+ *                     0 = Architecture 3
+ *                     1 = Architecture 4T
+ *    bits 24-31 : implementor code (as Post-ARM 7)
+ *
+ * Pre-ARM 7:
+ *    bits 0-3   : revision number
+ *    bits 12-15 : 0
+ *    bits 0-31  : Processor identification (notice that this covers 12-15) :
+ *                    &4156030 = ARM3 (archtecture 2)
+ *                    &4156060 = ARM600 (archtecture 3)
+ *                    &4156061 = ARM610 (archtecture 3)
+ *                    &4156062 = ARM620 (archtecture 3)
+ */
+extern unsigned long processor_id(void);
+
+typedef enum procarch_e {
+  arch_2 = -2,
+  arch_3 = -1,
+  /* Following codes are values in the 0-15 range provided by post-ARM 7 */
+  arch_4 = 1,
+  arch_4T = 2,
+  arch_5 = 3,
+  arch_5T = 4,
+  arch_5TE = 5,
+  arch_5TEJ = 6,
+  arch_6 = 7
+} procarch_t;
+
+#define PROCESSOR_ID_MAGIC       (15lu<<12)
+#define PROCESSOR_ID_MAGIC_PRE7  (0lu<<12)
+#define PROCESSOR_ID_MAGIC_ARM7  (7lu<<12)
+#define PROCESSOR_ID_ARM7_ARCH   (1lu<<23)
+#define PROCESSOR_ID_PRE7_ID     (0xFFFFFFFlu<<23)
+#define PROCESSOR_ID_PRE7_ID_ARM3   (0x4156030lu<<4)
+#define PROCESSOR_ID_PRE7_ID_ARM600 (0x4156060lu<<4)
+#define PROCESSOR_ID_PRE7_ID_ARM610 (0x4156061lu<<4)
+#define PROCESSOR_ID_PRE7_ID_ARM620 (0x4156062lu<<4)
+#define PROCESSOR_ID_POST7_ARCH  (15lu<<16)
+#define PROCESSOR_ID_POST7_ARCH_SHIFT  (16)
+
+/* For reasons best known only to me, I've implemented this architecture
+   check as a macro. Ick. */
+#define processor_architecture(id) \
+ ( ((id & PROCESSOR_ID_MAGIC) == PROCESSOR_ID_MAGIC_ARM7) ?  \
+     ( (id & PROCESSOR_ID_ARM7_ARCH) ? arch_4T : arch_3 ) : \
+   ( ((id & PROCESSOR_ID_MAGIC) == PROCESSOR_ID_MAGIC_PRE7) ? \
+       ( ((id & PROCESSOR_ID_PRE7_ID)==PROCESSOR_ID_PRE7_ID_ARM3) ? \
+           arch_2 : arch_3 ) : \
+     ( (id & PROCESSOR_ID_POST7_ARCH) >> PROCESSOR_ID_POST7_ARCH_SHIFT) ) )
+
+/* Check for ARM 6x0 chips */
+#define processor_is_arm6x0(id) \
+ ( ((id & PROCESSOR_ID_MAGIC) == PROCESSOR_ID_MAGIC_PRE7) ? \
+     ( ((id & PROCESSOR_ID_PRE7_ID)==PROCESSOR_ID_PRE7_ID_ARM3) ? \
+           0 : 1 /* Note that we treat the ARM-ARM as gospel - no other IDs exist in this range */) : \
+     0 )
+
+/* Check for ARM7 based chips */
+#define processor_is_arm7(id) \
+ ( ((id & PROCESSOR_ID_MAGIC) == PROCESSOR_ID_MAGIC_ARM7) ? 1 : 0 )
+
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif
