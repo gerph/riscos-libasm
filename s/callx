@@ -26,16 +26,11 @@ $l
 
 ; err = _callx(func, r12, argmask, ...)
 |_callx|
-        TST     r2, #&7F0                 ; check for use of input regs. 4 to 11
-        BNE     callx_even_more_tedious   ; if so, do full stuff
-
         STMFD   sp!, {r3}                 ; put 1st variadic arg on stack
         STMDB   sp!, {r2, r4-r11, lr}     ; save stuff
 
-        SUB     sp, sp, #5*4              ; so we can use tail code common with dynamic version (and room for regs stash)
-
-        ADD     r14, sp, #(5+10)*4        ; r14 -> input args
-        STR     fp, [sp]                  ; stash fp
+        ADD     r14, sp, #10*4            ; r14 -> input args
+        STR     fp, [sp, #-8]!            ; stash fp (and make way for the args ptr)
 
 ; set up the stack so that we can load r12,pc in the right order
         STR     r0, [sp, #-4]!
@@ -51,35 +46,9 @@ $l
         TST     r11, #&008
         LDRNE   r3, [r14], #4
 
-        STR     r14, [sp, #4+8]             ; stash args ptr
-        LDR     fp, [sp, #0+8]              ; re-read fp in case it breaks
-        MOV     lr, pc
-        LDMFD   sp!,{r12, pc}
-        LDR     ip, [sp, #4]                ; only read back ip (stashed args ptr)
-        B       callxReturn
+        TST     r11, #&7F0                ; check for use of input regs. 4 to 11
+        BEQ     callx_nohighargs
 
-callx_even_more_tedious
-        STMFD   sp!, {r3}                 ; put 1st variadic arg on stack
-        STMDB   sp!, {r2, r4-r11, lr}     ; save stuff
-
-        SUB     sp, sp, #5*4              ; so we can use tail code common with dynamic version (and room for regs stash)
-
-        ADD     r14, sp, #(5+10)*4        ; r14 -> input args
-        STR     fp, [sp]                  ; stash fp
-
-; set up the stack so that we can load r12,pc in the right order
-        STR     r0, [sp, #-4]!
-        STR     r1, [sp, #-4]!
-
-        MOV     r11, r2
-        TST     r11, #&001
-        LDRNE   r0, [r14], #4
-        TST     r11, #&002
-        LDRNE   r1, [r14], #4
-        TST     r11, #&004
-        LDRNE   r2, [r14], #4
-        TST     r11, #&008
-        LDRNE   r3, [r14], #4
         TST     r11, #&010
         LDRNE   r4, [r14], #4
         TST     r11, #&020
@@ -97,26 +66,25 @@ callx_even_more_tedious
         TST     r11, #&800
         LDRNE   r11, [r14], #4
 
+callx_nohighargs
         STR     r14, [sp, #4+8]           ; stash args ptr
         LDREQ   fp, [sp, #0+8]            ; re-read fp in case it breaks (only if not set)
+                                          ; EQ is correctly set whether we come from the branch
+                                          ; or as a fall through
         MOV     lr, pc
         LDMFD   sp!,{r12, pc}
         LDR     ip, [sp, #4]              ; only read back ip (stashed args ptr)
         ; fall through to callxReturn
 
 callxReturn
-        StoreFlags "[sp,#4*4]!", lr       ; lr reloaded, so this is safe
+        StoreFlags "[sp,#4]!", lr       ; lr reloaded, so this is safe
         LDR     lr, [sp, #1*4]
-        BVS     VSetReturn
         MOVS    lr, lr, ASL #1          ; Shift out setting C if R0 to be written, N
         LDRCS   lr, [r12], #4           ; if R1 to be written.
         STRCS   r0, [lr]
         LDRMI   lr, [r12], #4
         STRMI   r1, [lr]
         LDR     lr, [sp, #1*4]
-        TST     lr, #&f0000
-        MOVEQ   r0, #0
-ReturnTail
         MOVS    lr, lr, ASL #3          ; Shift 2 bits each time for the next 2 regs
         LDRCS   r1, [r12], #4
         STRCS   r2, [r1]
@@ -126,7 +94,7 @@ ReturnTail
         MOVS    lr, lr, ASL #2
         LDRCS   r1, [r12], #4
         STRCS   r4, [r1]
-        BEQ     VSetReturn              ; Typically saves 16S - (3S + 1N)
+        BEQ     DoneReturn              ; halfway, we shortcut a way out
         LDRMI   r1, [r12], #4
         STRMI   r5, [r1]
         MOVS    lr, lr, ASL #2
@@ -139,12 +107,14 @@ ReturnTail
         STRCS   r8, [r1]
         LDRMI   r1, [r12], #4
         STRMI   r9, [r1]
+DoneReturn
         MOVS    lr, lr, ASL #2
-        LDRCS   r9, [sp]
+        LDR     r9, [sp]
         LDRCS   r1, [r12], #4
         STRCS   r9, [r1]
-VSetReturn
-        ADD     sp, sp, #2*4
+        TST     r9, #V_bit
+        MOVEQ   r0, #0
+        ADD     sp, sp, #2 * 4
         LDMIA   sp!, {r4-r11,lr}
         ADD     sp, sp, #1 * 4          ; skip trailing variadic arg
      [ {CONFIG}=26
