@@ -73,7 +73,9 @@ svc_wimp_start_task
       ]
 
 ; set up the 'next' slot to an appropriate size
+        MOV    r12, r14                 ; preserve r14_usr
         BL     do_starttask
+        MOV    r14, r12
 
 ; back to SVC mode
         SWI    XOS_EnterOS              ; Set SVC mode.
