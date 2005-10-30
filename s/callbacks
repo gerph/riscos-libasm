@@ -22,13 +22,13 @@ trigger_callbacks
         MOV    r0, r0
       |
         MRS    r0, CPSR                 ; read CPSR
-        BIC    r0, r0, #2_01111         ; convert to user mode
+        BIC    r0, r0, #2_01111 :OR: (1<<7) ; convert to user mode with IRQs ENABLED!
         MSR    CPSR_ctl, r0             ; apply
       ]
 
         MOV    R0,#0
         MOV    R1,#1
-        SWI    XOS_Byte                 ; Does callbacks on exit
+        SWI    XOS_Byte                 ; Does (transient) callbacks on exit
 
         SWI    XOS_EnterOS              ; Set SVC mode.
         APCSExit

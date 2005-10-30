@@ -26,7 +26,7 @@ extern "C" {
  *                     5 = Architecture 5TE
  *                     6 = Architecture 5TEJ
  *                     7 = Architecture 6
- *    bits 20-23 : varaint number
+ *    bits 20-23 : variant number
  *    bits 24-31 : implementor code :
  *                    'A' = ARM
  *                    'D' = DEC
@@ -36,7 +36,7 @@ extern "C" {
  *    bits 0-3   : revision number
  *    bits 4-11  : primary part number
  *    bits 12-15 : 7
- *    bits 16-22 : varaint number
+ *    bits 16-22 : variant number
  *    bits 23    : architecture code :
  *                     0 = Architecture 3
  *                     1 = Architecture 4T
@@ -45,7 +45,7 @@ extern "C" {
  * Pre-ARM 7:
  *    bits 0-3   : revision number
  *    bits 12-15 : 0
- *    bits 0-31  : Processor identification (notice that this covers 12-15) :
+ *    bits 4-31  : Processor identification (notice that this covers 12-15) :
  *                    &4156030 = ARM3 (archtecture 2)
  *                    &4156060 = ARM600 (archtecture 3)
  *                    &4156061 = ARM610 (archtecture 3)
