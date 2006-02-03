@@ -12,7 +12,7 @@
         EXPORT  restore_irqs
         EXPORT  ensure_irqs_on
 
-        AREA    |C$$Code|, CODE, READONLY
+        AREA    |C$$code|, CODE, READONLY
 
 ;I32_bit *       1 :SHL: 7
 

@@ -9,7 +9,7 @@
 
         EXPORT  processor_id
 
-        AREA    |C$$Code|, CODE, READONLY
+        AREA    |C$$code|, CODE, READONLY
 
 ; return procesor ID word
 processor_id

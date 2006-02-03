@@ -10,7 +10,7 @@
         GET     Hdr:Wimp
         GET     Hdr:ModHand
 
-        AREA    |C$$Code|, CODE, READONLY
+        AREA    |C$$code|, CODE, READONLY
 
         EXPORT  svc_wimp_start_task
 
