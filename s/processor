@@ -13,11 +13,25 @@
 
 ; return procesor ID word
 processor_id
+     [ :LNOT: BUILD_ZM
+        MOV     r1, lr
+        SavePSR r2
+        SWI     XOS_EnterOS
+     ]
         MRC     p15,0,a1,c0,c0
-     [ {CONFIG}=32
-        MOV     pc,lr
+     [ :LNOT: BUILD_ZM
+        RestPSR r2,, c
+      [ {CONFIG}=32
+        MOV     pc, r1
+      |
+        MOVS    pc, r1
+      ]
      |
-        MOVS    pc,lr
+      [ {CONFIG}=32
+         MOV     pc,lr
+      |
+         MOVS    pc,lr
+      ]
      ]
 
         END
