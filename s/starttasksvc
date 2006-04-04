@@ -9,6 +9,7 @@
         GET     Hdr:ProcAPCS
         GET     Hdr:Wimp
         GET     Hdr:ModHand
+        GET     Hdr:OSReadSysInfo
 
         AREA    |C$$code|, CODE, READONLY
 
@@ -39,14 +40,20 @@ svc_wimp_start_task
 ; We're in SVC mode, so need to do the messing about
 50
 ; read size of the SVC stack
-        MOV    r0, #6
-        MOV    r1, #0
-        MOV    r2, #16           ; SVCSTK top
+        MOV    r0,#ReadSysInfoReason_KernelValue
+        MOV    r1,#0
+        MOV    r2,#ReadSysInfoReason_KernelValue_SVCSTK
         SWI    XOS_ReadSysInfo
         LDRVS  r2, =&1C02000     ; earlier systems don't have introspection
         MOV    r8, r2            ; R8 = top of the stack
+; read the function to use to do stack flattening
+        MOV    r0, #0
+        SWI    XOS_TaskControl
+        ADRVS  r11, our_flattener
+        MOV    r11, r0           ; r11-> function to flatten stack
+
         MOV    r14, r8, LSR #20
-        MOV    r14, r14, LSL #20  ; Megabyte boundary (base)
+        MOV    r14, r14, LSL #20  ; Megabyte boundary (base) of stack
 ; claim space for our copy
         SUB    r3, r8, r14       ; size of the stack
         MOV    r0, #ModHandReason_Claim
@@ -60,7 +67,8 @@ svc_wimp_start_task
         BL     SaveSVCStack      ; R10 = old SVC stack address
 ; flatten SVC stack
         LDMIA  sp, {r0, r1}      ; restore r0,r1 from entry
-        MOV    sp_svc, r8        ; stack now flattened
+        MOV    lr, pc
+        MOV    pc, r11
 
 ; Now drop to USR mode
       [ {CONFIG}=26
@@ -98,6 +106,10 @@ svc_wimp_start_task
         STR    r0, [sp]
         APCSExit
 
+; we know that we left the top of the stack in r8
+our_flattener
+        MOV    sp_svc, r8
+        MOV    pc, lr
 
 ; => r0-> command
 ;    r1 = slot size

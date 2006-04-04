@@ -8,7 +8,7 @@
         GET     Hdr:Proc
         GET     Hdr:ProcAPCS
 
-        AREA    |C$$Code|, CODE, READONLY
+        AREA    |C$$code|, CODE, READONLY
 
         EXPORT  asm_setregs
         EXPORT  asm_func
