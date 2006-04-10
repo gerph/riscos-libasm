@@ -39,6 +39,7 @@ svc_wimp_start_task
 
 ; We're in SVC mode, so need to do the messing about
 50
+        Push   "r11"
 ; read size of the SVC stack
         MOV    r0,#ReadSysInfoReason_KernelValue
         MOV    r1,#0
@@ -49,7 +50,7 @@ svc_wimp_start_task
 ; read the function to use to do stack flattening
         MOV    r0, #0
         SWI    XOS_TaskControl
-        ADRVS  r11, our_flattener
+        ADRVS  r0, our_flattener
         MOV    r11, r0           ; r11-> function to flatten stack
 
         MOV    r14, r8, LSR #20
@@ -66,9 +67,11 @@ svc_wimp_start_task
         MOV    r1, r8
         BL     SaveSVCStack      ; R10 = old SVC stack address
 ; flatten SVC stack
-        LDMIA  sp, {r0, r1}      ; restore r0,r1 from entry
+        LDMIB  sp, {r6, r7}      ; restore r0,r1 from entry
         MOV    lr, pc
         MOV    pc, r11
+        MOV    r0, r6
+        MOV    r1, r7
 
 ; Now drop to USR mode
       [ {CONFIG}=26
@@ -103,6 +106,7 @@ svc_wimp_start_task
 
 ; exit
 99
+        Pull   "r11"
         STR    r0, [sp]
         APCSExit
 

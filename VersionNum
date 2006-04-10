@@ -1,24 +1,24 @@
-/* LibAsm (0.15) 19:32:57 4/4/2006
+/* LibAsm (0.16) 01:39:31 10/4/2006
  *
  * This file is automatically maintained by commit, do not edit manually.
  *
  */
-#define Module_MajorVersion_CMHG        0.15
+#define Module_MajorVersion_CMHG        0.16
 #define Module_MinorVersion_CMHG        
-#define Module_Date_CMHG                04 Apr 2006
+#define Module_Date_CMHG                10 Apr 2006
 
-#define Module_MajorVersion             "0.15"
-#define Module_Version                  15
+#define Module_MajorVersion             "0.16"
+#define Module_Version                  16
 #define Module_MinorVersion             ""
-#define Module_Date                     "04 Apr 2006"
+#define Module_Date                     "10 Apr 2006"
 
-#define Module_ApplicationDate2         "04-Apr-06"
-#define Module_ApplicationDate4         "04-Apr-2006"
+#define Module_ApplicationDate2         "10-Apr-06"
+#define Module_ApplicationDate4         "10-Apr-2006"
 
 #define Module_ComponentName            "LibAsm"
 #define Module_ComponentBranch          ""
 #define Module_ComponentPath            "Sources/Lib/Asm"
 
-#define Module_FullVersion              "0.15"
-#define Module_FullVersionAndDate       "0.15 (04 Apr 2006)"
-#define Module_HelpVersion              "0.15 (04 Apr 2006)"
+#define Module_FullVersion              "0.16"
+#define Module_FullVersionAndDate       "0.16 (10 Apr 2006)"
+#define Module_HelpVersion              "0.16 (10 Apr 2006)"
