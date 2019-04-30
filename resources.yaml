@@ -1,0 +1,23 @@
+---
+
+resources:
+  build/native-build-tools:
+    phases: headers,libs
+    version: latest
+    path: $ROTOOL_DIR
+
+  build/root-env:
+    phases: headers,libs
+    version: latest
+    path: $ROBUILD_DIR/Env
+
+  build/build-headers:
+    phases: headers,libs
+    version: latest
+    path: $EXPORTS_DIR
+
+exports:
+  headers/asm:
+    phases: headers,libs
+    newer: true
+    path: $EXPORTS_DIR
