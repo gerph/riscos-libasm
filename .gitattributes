@@ -1,3 +1,4 @@
 VersionNum gitlab-language=c linguist-language=c
 h/* gitlab-language=c linguist-language=c
 s/* gitlab-language=armasm linguist-language=assembly
+*,fe1 gitlab-language=make linguist-language=makefile
